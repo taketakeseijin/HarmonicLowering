@@ -2,7 +2,7 @@
 
 The official implementation of harmonic convolution by Harmonic Lowering proposed in "[Harmonic Lowering for Accelerating Harmonic Convolution for Audio Signals](https://google.com)".
 
-![Illustration of HL]("https://github.com/taketakeseijin/HarmonicLowering/blob/master/figs/HarmonicLowering.png" width="200")
+<img src="https://github.com/taketakeseijin/HarmonicLowering/blob/master/figs/HarmonicLowering.png" width="200">
 
 Note that this implementation is not the official one of the [original paper](http://dap.csail.mit.edu/).
 
