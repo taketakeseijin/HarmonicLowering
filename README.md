@@ -10,8 +10,10 @@ Note that this implementation is not the official one of the [original paper](ht
 
 Harmonic Lowering is faster computational method of harmonic convolution.
 Here are benchmarks.
-![Benchmark1]("https://github.com/taketakeseijin/HarmonicLowering/blob/master/figs/runtime1.png" width="200")
-![Benchmark2]("https://github.com/taketakeseijin/HarmonicLowering/blob/master/figs/runtime2.png" width="200")
+
+<img src="https://github.com/taketakeseijin/HarmonicLowering/blob/master/figs/runtime1.png" width="480">
+
+<img src="https://github.com/taketakeseijin/HarmonicLowering/blob/master/figs/runtime2.png" width="480">
 
 These are measured in Nvidia GeForce GTX 1080Ti.
 
