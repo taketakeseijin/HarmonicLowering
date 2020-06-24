@@ -1,7 +1,0 @@
-setup.py
-./csrc/interp_same_size.cpp
-./csrc/interp_same_size_kernel.cu
-interp_same.egg-info/PKG-INFO
-interp_same.egg-info/SOURCES.txt
-interp_same.egg-info/dependency_links.txt
-interp_same.egg-info/top_level.txt
