@@ -15,8 +15,8 @@ namespace{
         const int k,
         const int n
     ){
-        const int nn = blockIDx.y;
-        const int step = blockIDx.x * blockDim.x + threadIdx.x;
+        const int nn = blockIdx.y;
+        const int step = blockIdx.x * blockDim.x + threadIdx.x;
         const int freq_id = step * n + nn;
 
         const int batchsize = idata.size(0);
@@ -47,9 +47,9 @@ namespace{
         const int top_to_target,
         const float bottom_weight
     ){
-        const int b = blockIDx.x;
-        const int c = blockIDx.y;
-        const int t = blockIDx.z;
+        const int b = blockIdx.x;
+        const int c = blockIdx.y;
+        const int t = blockIdx.z;
 
         const int freqsize = idata.size(3);
 
@@ -68,7 +68,7 @@ namespace{
 
 }// namespace
 
-static void interp_affine_out_cuda(
+void interp_affine_out_cuda(
     torch::Tensor input,
     torch::Tensor output,
     torch::Tensor indexes,
@@ -77,7 +77,7 @@ static void interp_affine_out_cuda(
     int n
 ){
     // input & output [batch,channel,time,freq]
-    const int num_kernels = input.size(3)
+    const int num_kernels = input.size(3);
     const int threads = at::cuda::getCurrentDeviceProperties()->maxThreadsPerBlock;
     const dim3 blocks(num_kernels/threads + 1, n);
     auto stream = at::cuda::getCurrentCUDAStream();
@@ -85,10 +85,10 @@ static void interp_affine_out_cuda(
     AT_DISPATCH_FLOATING_TYPES(
         input.scalar_type(), "interp_affine_cuda", [&] {
     
-            auto idata = input.packed_accessor<scalar_t, 4>();
-            auto odata = output.packed_accessor<scalar_t, 4>();
-            auto index_data = indexes.packed_accessor<int, 1>();
-            auto weight_data = weights.packed_accessor<scalar_t, 1>();
+            auto idata = input.packed_accessor<scalar_t, 4, torch::RestrictPtrTraits,size_t>();
+            auto odata = output.packed_accessor<scalar_t, 4, torch::RestrictPtrTraits,size_t>();
+            auto index_data = indexes.packed_accessor<int, 1, torch::RestrictPtrTraits,size_t>();
+            auto weight_data = weights.packed_accessor<scalar_t, 1, torch::RestrictPtrTraits,size_t>();
     
             interp_affine_out_kernel<scalar_t>
                 <<<blocks, threads, 0, stream>>>(idata, odata, index_data, weight_data, num_kernels, k, n);
@@ -96,7 +96,7 @@ static void interp_affine_out_cuda(
     );
 }
 
-static void interp_shift_plus_out_cuda(
+void interp_shift_plus_out_cuda(
     torch::Tensor input,
     torch::Tensor output,
     float shift
@@ -116,10 +116,10 @@ static void interp_shift_plus_out_cuda(
     AT_DISPATCH_FLOATING_TYPES(
         input.scalar_type(), "interp_affine_cuda", [&] {
     
-            auto idata = input.packed_accessor<scalar_t, 4>();
-            auto odata = output.packed_accessor<scalar_t, 4>();
+            auto idata = input.packed_accessor<scalar_t, 4, torch::RestrictPtrTraits,size_t>();
+            auto odata = output.packed_accessor<scalar_t, 4, torch::RestrictPtrTraits,size_t>();
     
-            interp_shift_out_kernel<scalar_t>
+            interp_shift_plus_out_kernel<scalar_t>
                 <<<blocks, threads, 0, stream>>>(idata, odata, top_to_target, bottom_weight);
         }
     );

@@ -2,8 +2,7 @@
 #include <vector>
 
 // CUDA declarations
-
-static void interp_affine_out_cuda(
+void interp_affine_out_cuda(
     torch::Tensor input,
     torch::Tensor output,
     torch::Tensor indexes,
@@ -12,7 +11,7 @@ static void interp_affine_out_cuda(
     int n
     );
 
-static void interp_shift_plus_out_cuda(
+void interp_shift_plus_out_cuda(
     torch::Tensor input,
     torch::Tensor output,
     float shift
@@ -49,7 +48,7 @@ static void interp_shift_plus_out(
     ) {
   CHECK_INPUT(input);
   CHECK_INPUT(output);
-  AT_ASSERTM(shift > 0, "shift must be plus number")
+  AT_ASSERTM(shift > 0, "shift must be plus number");
   output.zero_();
   interp_shift_plus_out_cuda(input, output, shift);
 }
