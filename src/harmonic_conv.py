@@ -29,61 +29,18 @@ class BaseSingleHarmonicConv2d(nn.Conv2d):
         if self.padding_mode != "zeros":
             raise NotImplementedError("only zero padding mode is implemented")
 
-        if self.padding[0] != 0:
+        if self.padding[1] != 0:
             warnings.warn(
                 "Harmonic Convolution do no padding on frequency axis")
-            self.padding[0] = 0
+            self.padding[1] = 0
 
         # transforming weight shape
-        self.lowered_weight = None
-        self.__set_weight(self.weight)
+        lowered_shape = (self.out_channels,self.in_channels*self.kernel_size[1],self.kernel_size[0],1)
+        self.lowered_weight = torch.nn.Parameter(self.weight.reshape(lowered_shape))
         self.weight = None
 
-    def get_weight(self):
-        """
-        get lowered weight with normal weight shape
-        return Tensor (C_out, C_in, K_f, K_t)
-        """
-        return self.lowered_weight.view(
-            self.out_channels,
-            self.kernel_size[0],
-            int(self.in_channels/self.groups),
-            self.kernel_size[1],
-        ).transpose(1, 2)
-
-    def set_weight(self, weight):
-        """
-        set weight on lowered weight with checking
-        return None
-        """
-        expected_shape = (self.out_channels, int(
-            self.in_channels/self.groups), *self.kernel_size)
-        if weight.shape != expected_shape:
-            raise Exception("weight shape is incorrect")
-        self.__set_weight(torch.as_tensor(
-            weight,
-            dtype=self.lowered_weight.dtype,
-            device=self.lowered_weight.device
-        ))
-
-    def __set_weight(self, weight):
-        """
-        set lowered weight without checking
-        return None
-        """
-        self.lowered_weight = torch.nn.Parameter(self.transform_weight(weight))
-
-    @staticmethod
-    def transform_weight(weight):
-        """
-        transform weight to lowered weight
-        return Tensor of lowered weight
-        """
-        out_channels, in_channels, k_f, k_t = weight.shape
-        lowered_shape = (out_channels, in_channels*k_f, 1, k_t)
-        return weight.transpose(1, 2).contiguous().view(lowered_shape)
-
     def forward(self, input):
+        # [batch, in_channel, t, f]
         raise NotImplementedError("overwrite forward method")
 
 
@@ -97,11 +54,9 @@ class SingleHarmonicConv2d(BaseSingleHarmonicConv2d):
 
         self.HL = HarmonicLowering(
             anchor=self.anchor,
-            f_kernel_size=self.kernel_size[0],
+            f_kernel_size=self.kernel_size[1],
             in_channels=self.in_channels,
             groups=self.groups,
-            method="linear",
-            expand_ahead=True,
         )
 
     def forward(self, input):
@@ -136,13 +91,12 @@ class SingleLogHarmonicConv2d(nn.Conv2d):
 
         self.LHL = LogHarmonicLowering(
             anchor=self.anchor,
-            f_kernel_size=self.kernel_size[0],
+            f_kernel_size=self.kernel_size[1],
             in_channels=self.in_channels,
             groups=self.groups,
             out_log_scale=self.out_log_scale,
             in_log_scale=self.in_log_scale,
             radix=self.radix,
-            method="grid",
         )
 
     def forward(self, input):
