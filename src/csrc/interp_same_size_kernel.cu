@@ -4,6 +4,10 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include <string>
+
+#define CUDA_MAX_THREADS 1024 // this is safe.
+
 namespace{
     template <typename scalar_t>
     __global__ void interp_affine_out_kernel(
@@ -78,9 +82,13 @@ void interp_affine_out_cuda(
 ){
     // input & output [batch,channel,time,freq]
     const int num_kernels = input.size(3);
-    const int threads = at::cuda::getCurrentDeviceProperties()->maxThreadsPerBlock;
+    
+    // const int threads = std::min<int>(
+        // at::cuda::getCurrentDeviceProperties()->maxThreadsPerBlock, CUDA_MAX_THREADS);
+    // I don't know why, but in my environment the above line malfunctions.
+    const int threads = 1024;
     const dim3 blocks(num_kernels/threads + 1, n);
-    auto stream = at::cuda::getCurrentCUDAStream();
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
     AT_DISPATCH_FLOATING_TYPES(
         input.scalar_type(), "interp_affine_cuda", [&] {
@@ -94,6 +102,7 @@ void interp_affine_out_cuda(
                 <<<blocks, threads, 0, stream>>>(idata, odata, index_data, weight_data, num_kernels, k, n);
         }
     );
+    AT_CUDA_CHECK(cudaGetLastError());
 }
 
 void interp_shift_plus_out_cuda(
@@ -102,9 +111,11 @@ void interp_shift_plus_out_cuda(
     float shift
 ){
     // input & output [batch,channel,time,freq]
-    const int threads = at::cuda::getCurrentDeviceProperties()->maxThreadsPerBlock;
+
+    // const int threads = 1024;
+    const int threads = 1;
     const dim3 blocks(input.size(0), input.size(1), input.size(2));
-    auto stream = at::cuda::getCurrentCUDAStream();
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
     const int top_to_target = (int) std::floor(shift);//1
     const float bottom_weight = shift - (float) top_to_target;//0.8
@@ -123,5 +134,5 @@ void interp_shift_plus_out_cuda(
                 <<<blocks, threads, 0, stream>>>(idata, odata, top_to_target, bottom_weight);
         }
     );
-
+    AT_CUDA_CHECK(cudaGetLastError());
 }

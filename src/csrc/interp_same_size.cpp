@@ -24,7 +24,7 @@ void interp_shift_plus_out_cuda(
 #define CHECK_CONTIGUOUS(x) AT_ASSERTM(x.is_contiguous(), #x " must be contiguous")
 #define CHECK_INPUT(x) CHECK_CUDA(x); CHECK_CONTIGUOUS(x)
 
-static void interp_affine_out(
+void interp_affine_out(
     torch::Tensor input,
     torch::Tensor output,
     torch::Tensor indexes,
@@ -41,7 +41,7 @@ static void interp_affine_out(
   interp_affine_out_cuda(input, output, indexes, weights, k, n);
 }
 
-static void interp_shift_plus_out(
+void interp_shift_plus_out(
     torch::Tensor input,
     torch::Tensor output,
     float shift
