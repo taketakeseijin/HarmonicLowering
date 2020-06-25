@@ -49,24 +49,37 @@ namespace{
         const torch::PackedTensorAccessor<scalar_t,4,torch::RestrictPtrTraits,size_t> idata,
         torch::PackedTensorAccessor<scalar_t,4,torch::RestrictPtrTraits,size_t> odata,
         const int top_to_target,
-        const float bottom_weight
+        const float bottom_weight,
+        const int num_kernels
     ){
-        const int b = blockIdx.x;
-        const int c = blockIdx.y;
-        const int t = blockIdx.z;
 
-        const int freqsize = idata.size(3);
+        // const int b = blockIdx.x;
+        // const int c = blockIdx.y;
+        // const int t = blockIdx.z;
 
-        const float top_weight = 1 - bottom_weight;//0.2
-        // shift = 1.8
-        // 3    1.2  top
-        // 2    0.2
-        // 1 -> 0
-        // 0    0    bottom
-        float last_value = 0.0;
-        for (int f = top_to_target; f < freqsize; f++){
-            odata[b][c][t][f] = bottom_weight * last_value + top_weight * idata[b][c][t][f - top_to_target];
-            last_value = idata[b][c][t][f - top_to_target];
+        const int id = blockIdx.x * blockDim.x + threadIdx.x;
+        if (id < num_kernels){
+
+            const int batchsize = idata.size(0);
+            const int channelsize = idata.size(1);
+            const int timesize = idata.size(2);
+            const int freqsize = idata.size(3);
+
+            const int b = id / (channelsize * timesize);
+            const int c = (id / timesize) % channelsize;
+            const int t = id % timesize;
+
+            const float top_weight = 1 - bottom_weight;//0.2
+            // shift = 1.8
+            // 3    1.2  top
+            // 2    0.2
+            // 1 -> 0
+            // 0    0    bottom
+            float last_value = 0.0;
+            for (int f = top_to_target; f < freqsize; f++){
+                odata[b][c][t][f] = bottom_weight * last_value + top_weight * idata[b][c][t][f - top_to_target];
+                last_value = idata[b][c][t][f - top_to_target];
+            }
         }
     }
 
@@ -112,9 +125,13 @@ void interp_shift_plus_out_cuda(
 ){
     // input & output [batch,channel,time,freq]
 
-    // const int threads = 1024;
-    const int threads = 1;
-    const dim3 blocks(input.size(0), input.size(1), input.size(2));
+    // const int threads = 1;
+    // const dim3 blocks(input.size(0), input.size(1), input.size(2));
+
+    const int num_kernels = input.size(0) * input.size(1) * input.size(2);
+    const int threads = 1024;
+    const dim3 blocks(num_kernels / threads + 1);
+
     cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
     const int top_to_target = (int) std::floor(shift);//1
@@ -131,7 +148,7 @@ void interp_shift_plus_out_cuda(
             auto odata = output.packed_accessor<scalar_t, 4, torch::RestrictPtrTraits,size_t>();
     
             interp_shift_plus_out_kernel<scalar_t>
-                <<<blocks, threads, 0, stream>>>(idata, odata, top_to_target, bottom_weight);
+                <<<blocks, threads, 0, stream>>>(idata, odata, top_to_target, bottom_weight, num_kernels);
         }
     );
     AT_CUDA_CHECK(cudaGetLastError());
