@@ -28,7 +28,6 @@ class BaseLowering(nn.Module):
         self.f_kernel_size = f_kernel_size
         self.in_channels = in_channels
         self.groups = groups
-        self.method = method
 
         # setting index rules of in channels
         self.channel_slice_func = lambda k_f: slice(
@@ -64,7 +63,7 @@ class BaseLowering(nn.Module):
         for fk in range(self.f_kernel_size):
             # start parallel
             with torch.cuda.stream(self.parallel_streams[fk]):
-                lowered_input[:,self.channel_slice_func(fk)] = self.parallelized(input,k=fk)
+                lowered_input[:,self.channel_slice_func(fk)] = self.parallelized(input,k=fk+1)
 
         for s in self.parallel_streams:
             # block parallel streams
@@ -80,7 +79,7 @@ class BaseLowering(nn.Module):
         return f"channel_type={self.channel_type}"
 
 
-class HarmonicLowering(nn.Module):
+class HarmonicLowering(BaseLowering):
     """
     Lowering input for normal convolution
     """
@@ -94,7 +93,7 @@ class HarmonicLowering(nn.Module):
     def extra_repr(self):
         return f"n={self.anchor}, K_f={self.f_kernel_size}, " + super().extra_repr()
 
-class LogHarmonicLowering(nn.Module):
+class LogHarmonicLowering(BaseLowering):
     def __init__(
         self,
         anchor,
@@ -129,7 +128,7 @@ class LogHarmonicLowering(nn.Module):
         return -log_shift
 
     def parallelized(self,input,k):
-        return IF.Shift(input,self.shift[k])
+        return IF.Shift(input,self.shift[k-1])
 
     def extra_repr(self):
         radix = self.radix if self.radix is not None else "e"
