@@ -19,9 +19,12 @@ namespace{
         const int k,
         const int n
     ){
-        const int nn = blockIdx.y;
-        const int step = blockIdx.x * blockDim.x + threadIdx.x;
-        const int freq_id = step * n + nn;
+        // const int nn = blockIdx.y;
+        // const int step = blockIdx.x * blockDim.x + threadIdx.x;
+        // const int freq_id = step * n + nn;
+        const int freq_id = blockIdx.x * blockDim.x + threadIdx.x;
+        const int step = freq_id / n;
+        const int nn = freq_id % n;
 
         const int batchsize = idata.size(0);
         const int channels = idata.size(1);
@@ -100,7 +103,7 @@ void interp_affine_out_cuda(
         // at::cuda::getCurrentDeviceProperties()->maxThreadsPerBlock, CUDA_MAX_THREADS);
     // I don't know why, but in my environment the above line malfunctions.
     const int threads = 1024;
-    const dim3 blocks(num_kernels/threads + 1, n);
+    const dim3 blocks(num_kernels/threads + 1);
     cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
     AT_DISPATCH_FLOATING_TYPES(
