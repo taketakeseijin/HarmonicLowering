@@ -23,7 +23,7 @@ namespace{
         // const int step = blockIdx.x * blockDim.x + threadIdx.x;
         // const int freq_id = step * n + nn;
         const int batchsize = idata.size(0);
-        const int channels = idata.size(1);
+        const int channelsize = idata.size(1);
         const int freqsize = idata.size(2);
         const int timesize = idata.size(3);
 
