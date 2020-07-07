@@ -22,27 +22,38 @@ namespace{
         // const int nn = blockIdx.y;
         // const int step = blockIdx.x * blockDim.x + threadIdx.x;
         // const int freq_id = step * n + nn;
-        const int freq_id = blockIdx.x * blockDim.x + threadIdx.x;
-        const int step = freq_id / n;
-        const int nn = freq_id % n;
-
         const int batchsize = idata.size(0);
         const int channels = idata.size(1);
         const int freqsize = idata.size(2);
         const int timesize = idata.size(3);
+
+
+        const int id = blockIdx.x * blockDim.x + threadIdx.x;
+        const int b = id / (channelsize * freqsize);
+        const int c = (id / freqsize) % channelsize;
+        const int freq_id = id % freqsize;
+
+        const int step = freq_id / n;
+        const int nn = freq_id % n;
+
 
         const int ref_index_0 = step * k + index[nn];
         const int ref_index_1 = ref_index_0 + 1;
         const float weight_0 = weight[nn];
         const float weight_1 = 1 - weight_0;
 
-        if (freq_id < num_kernels && ref_index_1 < freqsize){
-            for (int b = 0; b < batchsize; b++){
-                for (int c = 0; c < channels; c++){
-                    for (int t = 0; t < timesize; t++){
-                        odata[b][c][freq_id][t] = weight_0 * idata[b][c][ref_index_0][t] + weight_1 * idata[b][c][ref_index_1][t]; 
-                    }
-                }
+        // if (freq_id < num_kernels && ref_index_1 < freqsize){
+        //     for (int b = 0; b < batchsize; b++){
+        //         for (int c = 0; c < channels; c++){
+        //             for (int t = 0; t < timesize; t++){
+        //                 odata[b][c][freq_id][t] = weight_0 * idata[b][c][ref_index_0][t] + weight_1 * idata[b][c][ref_index_1][t]; 
+        //             }
+        //         }
+        //     }
+        // }
+        if (id < num_kernels && ref_index_1 < freqsize){
+            for (int t = 0; t < timesize; t++){
+                odata[b][c][freq_id][t] = weight_0 * idata[b][c][ref_index_0][t] + weight_1 * idata[b][c][ref_index_1][t]; 
             }
         }
     }
@@ -97,7 +108,7 @@ void interp_affine_out_cuda(
     int n
 ){
     // input & output [batch,channel,freq,time]
-    const int num_kernels = input.size(2);
+    const int num_kernels = input.size(0)*input.size(1)*input.size(2);
     
     // const int threads = std::min<int>(
         // at::cuda::getCurrentDeviceProperties()->maxThreadsPerBlock, CUDA_MAX_THREADS);
