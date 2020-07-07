@@ -32,7 +32,7 @@ class BaseSingleHarmonicConv2d(nn.Conv2d):
         if self.padding[1] != 0:
             warnings.warn(
                 "Harmonic Convolution do no padding on frequency axis")
-            self.padding[1] = 0
+            self.padding = (self.padding[0],0)
 
         # transforming weight shape
         lowered_shape = (self.out_channels,self.in_channels*self.kernel_size[1],self.kernel_size[0],1)
