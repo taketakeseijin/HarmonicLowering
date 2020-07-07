@@ -128,7 +128,7 @@ class LogHarmonicLowering(BaseLowering):
         return -log_shift
 
     def parallelized(self,input,k):
-        return IF.Shift(input,self.shift[k-1])
+        return IF.ShiftFunctional(input,self.shift[k-1])
 
     def extra_repr(self):
         radix = self.radix if self.radix is not None else "e"
