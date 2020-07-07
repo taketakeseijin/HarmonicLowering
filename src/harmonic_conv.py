@@ -81,7 +81,7 @@ class SingleHarmonicConv2d(BaseSingleHarmonicConv2d):
         return f"anchor={self.anchor}, " + super().extra_repr()
 
 
-class SingleLogHarmonicConv2d(nn.Conv2d):
+class SingleLogHarmonicConv2d(BaseSingleHarmonicConv2d):
     def __init__(self, *args, out_log_scale=1000, in_log_scale=0.001, radix=None, **kwargs):
         super().__init__(*args, **kwargs)
 
