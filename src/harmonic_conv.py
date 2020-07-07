@@ -13,7 +13,7 @@ from Lowering import LogHarmonicLowering
 
 __all__ = ["SingleHarmonicConv2d", "SingleLogHarmonicConv2d"]
 
-class BaseSingleHarmonicConv2d(nn.Conv2d):
+class BaseSingleHarmonicConv2d_tf(nn.Conv2d):
     """
     Base class for Harmonic Convolution
     """
@@ -43,8 +43,38 @@ class BaseSingleHarmonicConv2d(nn.Conv2d):
         # [batch, in_channel, t, f]
         raise NotImplementedError("overwrite forward method")
 
+class BaseSingleHarmonicConv2d_ft(nn.Conv2d):
+    """
+    Base class for Harmonic Convolution
+    """
+    
+    def __init__(self, *args, anchor=1, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not isinstance(anchor, int):
+            raise Exception("anchor should be integer")
+        self.anchor = anchor
 
-class SingleHarmonicConv2d(BaseSingleHarmonicConv2d):
+        if self.anchor < 1:
+            raise Exception("anchor should be equal to or bigger than 1")
+        if self.padding_mode != "zeros":
+            raise NotImplementedError("only zero padding mode is implemented")
+
+        if self.padding[0] != 0:
+            warnings.warn(
+                "Harmonic Convolution do no padding on frequency axis")
+            self.padding = (0,self.padding[1])
+
+        # transforming weight shape
+        lowered_shape = (self.out_channels,self.in_channels*self.kernel_size[0],1,self.kernel_size[1])
+        self.lowered_weight = torch.nn.Parameter(self.weight.reshape(lowered_shape))
+        self.weight = None
+
+    def forward(self, input):
+        # [batch, in_channel, f, t]
+        raise NotImplementedError("overwrite forward method")
+
+
+class SingleHarmonicConv2d(BaseSingleHarmonicConv2d_ft):
     """
     Harmonic Convolution by Harmonic Lowering
     """
@@ -54,7 +84,7 @@ class SingleHarmonicConv2d(BaseSingleHarmonicConv2d):
 
         self.HL = HarmonicLowering(
             anchor=self.anchor,
-            f_kernel_size=self.kernel_size[1],
+            f_kernel_size=self.kernel_size[0],
             in_channels=self.in_channels,
             groups=self.groups,
         )
@@ -81,7 +111,7 @@ class SingleHarmonicConv2d(BaseSingleHarmonicConv2d):
         return f"anchor={self.anchor}, " + super().extra_repr()
 
 
-class SingleLogHarmonicConv2d(BaseSingleHarmonicConv2d):
+class SingleLogHarmonicConv2d(BaseSingleHarmonicConv2d_tf):
     def __init__(self, *args, out_log_scale=1000, in_log_scale=0.001, radix=None, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -101,8 +131,8 @@ class SingleLogHarmonicConv2d(BaseSingleHarmonicConv2d):
 
     def forward(self, input):
         """
-        input Tensor size(batch,in_channels,f,t)
-        return Tensor size(batch,out_channels,f',t')
+        input Tensor size(batch,in_channels,t,f)
+        return Tensor size(batch,out_channels,t',f')
         """
         lowered_input = self.LHL(input)
 
