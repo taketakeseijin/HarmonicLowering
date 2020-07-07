@@ -34,7 +34,7 @@ class Shift(torch.autograd.Function):
                 grad_input = grad_output
             elif shift > 0:
                 grad_input = torch.empty_like(grad_output)
-                IS.interp_shift_plus(grad_output,grad_input,-shift)
+                IS.interp_shift_plus(grad_output,grad_input,shift)
             else:
                 grad_input = shift_minus(grad_output,shift)
         return grad_input,grad_shift
