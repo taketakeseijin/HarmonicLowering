@@ -28,8 +28,8 @@ namespace{
 
         const int batchsize = idata.size(0);
         const int channels = idata.size(1);
-        const int timesize = idata.size(2);
-        const int freqsize = idata.size(3);
+        const int freqsize = idata.size(2);
+        const int timesize = idata.size(3);
 
         const int ref_index_0 = step * k + index[nn];
         const int ref_index_1 = ref_index_0 + 1;
@@ -40,7 +40,7 @@ namespace{
             for (int b = 0; b < batchsize; b++){
                 for (int c = 0; c < channels; c++){
                     for (int t = 0; t < timesize; t++){
-                        odata[b][c][t][freq_id] = weight_0 * idata[b][c][t][ref_index_0] + weight_1 * idata[b][c][t][ref_index_1]; 
+                        odata[b][c][freq_id][t] = weight_0 * idata[b][c][ref_index_0][t] + weight_1 * idata[b][c][ref_index_1][t]; 
                     }
                 }
             }
@@ -96,8 +96,8 @@ void interp_affine_out_cuda(
     int k,
     int n
 ){
-    // input & output [batch,channel,time,freq]
-    const int num_kernels = input.size(3);
+    // input & output [batch,channel,freq,time]
+    const int num_kernels = input.size(2);
     
     // const int threads = std::min<int>(
         // at::cuda::getCurrentDeviceProperties()->maxThreadsPerBlock, CUDA_MAX_THREADS);
