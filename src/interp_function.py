@@ -30,6 +30,7 @@ class Shift(torch.autograd.Function):
         shift = -ctx.shift
         grad_input = grad_shift = None
         if ctx.needs_input_grad[0]:
+            grad_output = grad_output.contiguous()
             if shift == 0:
                 grad_input = grad_output
             elif shift > 0:
