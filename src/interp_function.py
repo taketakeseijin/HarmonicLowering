@@ -40,7 +40,7 @@ class Shift(torch.autograd.Function):
         return grad_input,grad_shift
 
 def ShiftFunctional(input,shift):
-    Shift.apply(input.transpose(-1,-2).contiguous(),shift).transpose(-1,-2)
+    return Shift.apply(input.transpose(-1,-2).contiguous(),shift).transpose(-1,-2)
 
 def make_detail(k,n,device):
     index = torch.arange(n,dtype=torch.int32,device=device) * k / n 
