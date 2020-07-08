@@ -64,12 +64,12 @@ class ZoomF(torch.autograd.Function):
         if ctx.needs_input_grad[0]:
             if n == 1:
                 # stride case
-                # [batch,channel,time,freq]
+                # [batch,channel,freq,time]
                 freq_size = grad_output.shape[3]
                 # get by stride
-                strided_grad_output = grad_output[:, :, :, ::k]
+                strided_grad_output = grad_output[:, :, ::k, :]
                 # 0-padding
-                pad_shape = (0, freq_size - strided_grad_output.shape[3])
+                pad_shape = (0,0,0, freq_size - strided_grad_output.shape[2])
                 grad_input = F.pad(strided_grad_output, pad_shape, "constant", 0)
             else:
                 grad_input = torch.empty_like(grad_output)
@@ -90,12 +90,12 @@ class Zoom(torch.nn.Module):
             return input
         # stride case
         if n == 1:
-            # [batch,channel,time,freq]
-            freq_size = input.shape[3]
+            # [batch,channel,freq,time]
+            freq_size = input.shape[2]
             # get by stride
-            strided_input = input[:, :, :, ::k]
+            strided_input = input[:, :, ::k, :]
             # 0-padding
-            pad_shape = (0, freq_size - strided_input.shape[3])
+            pad_shape = (0,0,0, freq_size - strided_input.shape[2])
             return F.pad(strided_input, pad_shape, "constant", 0)
         
         # interpolate same size by affine 1d interpolation
