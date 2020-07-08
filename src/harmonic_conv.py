@@ -111,7 +111,7 @@ class SingleHarmonicConv2d(BaseSingleHarmonicConv2d_ft):
         return f"anchor={self.anchor}, " + super().extra_repr()
 
 
-class SingleLogHarmonicConv2d(BaseSingleHarmonicConv2d_tf):
+class SingleLogHarmonicConv2d(BaseSingleHarmonicConv2d_ft):
     def __init__(self, *args, out_log_scale=1000, in_log_scale=0.001, radix=None, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -121,7 +121,7 @@ class SingleLogHarmonicConv2d(BaseSingleHarmonicConv2d_tf):
 
         self.LHL = LogHarmonicLowering(
             anchor=self.anchor,
-            f_kernel_size=self.kernel_size[1],
+            f_kernel_size=self.kernel_size[0],
             in_channels=self.in_channels,
             groups=self.groups,
             out_log_scale=self.out_log_scale,
@@ -131,8 +131,8 @@ class SingleLogHarmonicConv2d(BaseSingleHarmonicConv2d_tf):
 
     def forward(self, input):
         """
-        input Tensor size(batch,in_channels,t,f)
-        return Tensor size(batch,out_channels,t',f')
+        input Tensor size(batch,in_channels,f,t)
+        return Tensor size(batch,out_channels,f',t')
         """
         lowered_input = self.LHL(input)
 
