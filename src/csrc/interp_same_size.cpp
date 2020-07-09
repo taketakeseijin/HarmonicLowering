@@ -8,13 +8,15 @@ void interp_affine_out_cuda(
     torch::Tensor indexes,
     torch::Tensor weights,
     int k,
-    int n
+    int n,
+    bool time_last
     );
 
 void interp_shift_out_cuda(
     torch::Tensor input,
     torch::Tensor output,
-    float shift
+    float shift,
+    bool time_last
     );
 
 // C++ interface
@@ -30,7 +32,8 @@ void interp_affine_out(
     torch::Tensor indexes,
     torch::Tensor weights,
     int k,
-    int n
+    int n,
+    bool time_last
     ) {
   CHECK_INPUT(input);
   CHECK_INPUT(output);
@@ -38,19 +41,20 @@ void interp_affine_out(
   CHECK_INPUT(weights);
   output.zero_();
 
-  interp_affine_out_cuda(input, output, indexes, weights, k, n);
+  interp_affine_out_cuda(input, output, indexes, weights, k, n, time_last);
 }
 
 void interp_shift_out(
     torch::Tensor input,
     torch::Tensor output,
-    float shift
+    float shift,
+    bool time_last
     ) {
   CHECK_INPUT(input);
   CHECK_INPUT(output);
   // AT_ASSERTM(shift > 0, "shift must be plus number");
   output.zero_();
-  interp_shift_out_cuda(input, output, shift);
+  interp_shift_out_cuda(input, output, shift, time_last);
 }
 
 

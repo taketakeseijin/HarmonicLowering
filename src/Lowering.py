@@ -22,12 +22,14 @@ class BaseLowering(nn.Module):
         f_kernel_size,
         in_channels,
         groups=1,
+        time_last=True
         ):
         super().__init__()
         self.anchor = anchor
         self.f_kernel_size = f_kernel_size
         self.in_channels = in_channels
         self.groups = groups
+        self.time_last = time_last
 
         # setting index rules of in channels
         self.channel_slice_func = lambda k_f: slice(
@@ -76,7 +78,7 @@ class BaseLowering(nn.Module):
         raise NotImplementedError
 
     def extra_repr(self):
-        return f"channel_type={self.channel_type}"
+        return f"channel_type={self.channel_type}, time_last={self.time_last}"
 
 
 class HarmonicLowering(BaseLowering):
@@ -85,7 +87,7 @@ class HarmonicLowering(BaseLowering):
     """
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
-        self.zoom = IF.Zoom()
+        self.zoom = IF.Zoom(self.time_last)
 
     def parallelized(self,input,k):
         return self.zoom(input,k,self.anchor)
@@ -109,7 +111,7 @@ class LogHarmonicLowering(BaseLowering):
         self.in_log_scale = in_log_scale
         self.radix = radix
         self.shift = self.make_log_shift()
-        self.Shifter = IF.Shift()
+        self.Shifter = IF.Shift(self.time_last)
 
     def make_log_shift(self):
         """
