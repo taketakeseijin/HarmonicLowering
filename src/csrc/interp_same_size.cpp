@@ -11,7 +11,7 @@ void interp_affine_out_cuda(
     int n
     );
 
-void interp_shift_plus_out_cuda(
+void interp_shift_out_cuda(
     torch::Tensor input,
     torch::Tensor output,
     float shift
@@ -41,20 +41,20 @@ void interp_affine_out(
   interp_affine_out_cuda(input, output, indexes, weights, k, n);
 }
 
-void interp_shift_plus_out(
+void interp_shift_out(
     torch::Tensor input,
     torch::Tensor output,
     float shift
     ) {
   CHECK_INPUT(input);
   CHECK_INPUT(output);
-  AT_ASSERTM(shift > 0, "shift must be plus number");
+  // AT_ASSERTM(shift > 0, "shift must be plus number");
   output.zero_();
-  interp_shift_plus_out_cuda(input, output, shift);
+  interp_shift_out_cuda(input, output, shift);
 }
 
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("interp_affine", &interp_affine_out, "affine interpolation with same size (CUDA)");
-  m.def("interp_shift_plus", &interp_shift_plus_out, "shift(+) interpolation with same size (CUDA)");
+  m.def("interp_shift", &interp_shift_out, "shift interpolation with same size (CUDA)");
 }

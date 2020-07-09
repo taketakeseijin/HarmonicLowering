@@ -2,27 +2,15 @@ import torch
 import torch.nn.functional as F
 import interp_same as IS
 
-def shift_minus(input,shift):
-    fliped_input = torch.flip(input,(3,)).contiguous()
-    fliped_output = torch.empty_like(input)
-    IS.interp_shift_plus(fliped_input,fliped_output,-shift)
-    output = torch.flip(fliped_output,(3,)).contiguous()
-    return output
 
-class Shift(torch.autograd.Function):
+class ShiftF(torch.autograd.Function):
     @staticmethod
     def forward(ctx,input,shift):
         assert input.dim() == 4, "this method suppose the dimension of input is 4"
         ctx.shift = shift
 
-        if shift == 0:
-            # special case
-            output = input
-        elif shift > 0:
-            output = torch.empty_like(input)
-            IS.interp_shift_plus(input,output,shift)
-        else:
-            output = shift_minus(input,shift)
+        output = torch.empty_like(input)
+        IS.interp_shift(input,output,shift)
         return output
 
     @staticmethod
@@ -31,17 +19,29 @@ class Shift(torch.autograd.Function):
         grad_input = grad_shift = None
         if ctx.needs_input_grad[0]:
             grad_output = grad_output.contiguous()
-            if shift == 0:
-                grad_input = grad_output
-            elif shift > 0:
-                grad_input = torch.empty_like(grad_output)
-                IS.interp_shift_plus(grad_output,grad_input,shift)
-            else:
-                grad_input = shift_minus(grad_output,shift)
+            grad_input = torch.empty_like(grad_output)
+            IS.interp_shift(grad_output,grad_input,shift)
         return grad_input,grad_shift
 
-def ShiftFunctional(input,shift):
-    return Shift.apply(input.transpose(-1,-2).contiguous(),shift).transpose(-1,-2)
+ShiftFunctional = ShiftF.apply
+
+class Shift(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self,input,shift):
+        # input [batch,channel,freq,time]
+        if shift == int(shift):
+            # special case
+            if shift == 0:
+                return input
+            elif shift > 0:
+                return F.pad(input[:,:,:-int(shift),:],(0,0,int(shift),0),"constant",0)
+            else:
+                return F.pad(input[:,:,-int(shift):,:],(0,0,0,-int(shift)),"constant",0)
+        else:
+            return ShiftFunctional(input,shift)
+    
 
 def make_detail(k,n,device):
     index = torch.arange(n,dtype=torch.int32,device=device) * k / n 
@@ -64,6 +64,7 @@ class ZoomF(torch.autograd.Function):
         k = ctx.n
         n = ctx.k
         if ctx.needs_input_grad[0]:
+            grad_output = grad_output.contiguous()
             if n == 1:
                 # stride case
                 # [batch,channel,freq,time]
