@@ -45,15 +45,15 @@ class BaseLowering(nn.Module):
 
     def forward(self, input):
         """
-        input Tensor size(batch,in_channels,t,f)
+        input Tensor size(batch,in_channels,f,t)
         lowered_in_channels = in_channels * f_kernel_size
-        return Tensor size(batch,lowered_in_channels,t,f)
+        return Tensor size(batch,lowered_in_channels,f,t)
         """
         # make empty lowered input
-        batch, in_channels, in_time_size, in_freq_size = input.shape
+        batch, in_channels, in_freq_size, in_time_size = input.shape
         lowered_in_channels = in_channels * self.f_kernel_size
         lowered_shape = (batch, lowered_in_channels,
-                         in_time_size, in_freq_size)
+                         in_freq_size, in_time_size)
         lowered_input = torch.empty(
             lowered_shape, dtype=input.dtype, device=input.device)
         # fill elements start
@@ -109,6 +109,7 @@ class LogHarmonicLowering(BaseLowering):
         self.in_log_scale = in_log_scale
         self.radix = radix
         self.shift = self.make_log_shift()
+        self.Shifter = IF.Shift()
 
     def make_log_shift(self):
         """
@@ -128,7 +129,7 @@ class LogHarmonicLowering(BaseLowering):
         return -log_shift
 
     def parallelized(self,input,k):
-        return IF.ShiftFunctional(input,self.shift[k-1])
+        return self.Shifter(input,self.shift[k-1])
 
     def extra_repr(self):
         radix = self.radix if self.radix is not None else "e"
