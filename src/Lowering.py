@@ -105,8 +105,9 @@ class LogHarmonicLowering(BaseLowering):
         out_log_scale=1000,
         in_log_scale=0.001,
         radix=None,
+        time_last=True
         ):
-        super().__init__(anchor,f_kernel_size,in_channels,groups)
+        super().__init__(anchor,f_kernel_size,in_channels,groups,time_last)
         self.out_log_scale = out_log_scale
         self.in_log_scale = in_log_scale
         self.radix = radix
