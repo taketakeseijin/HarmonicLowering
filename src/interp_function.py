@@ -91,16 +91,6 @@ class Zoom(torch.nn.Module):
         # special case
         if n == k:
             return input
-        # stride case
-        if n == 1:
-            # [batch,channel,freq,time]
-            freq_size = input.shape[2]
-            # get by stride
-            strided_input = input[:, :, ::k, :]
-            # 0-padding
-            pad_shape = (0,0,0, freq_size - strided_input.shape[2])
-            return F.pad(strided_input, pad_shape, "constant", 0)
-        
         # interpolate same size by affine 1d interpolation
         return ZoomFunctional(input, k, n)
 
