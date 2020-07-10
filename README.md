@@ -7,7 +7,7 @@ The official implementation of harmonic convolution by Harmonic Lowering propose
 Note that this implementation is not the official one of the [original paper](http://dap.csail.mit.edu/).
 ## Build
 ### Requirements
-Python 3.*
+Python 3.*  
 PyTorch newer than v1.0 with CUDA
 ### Install
 
