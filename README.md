@@ -80,7 +80,7 @@ If you use the code, please cite:
 
 ```bibtex
     @InProceedings{Hirotoshi_2020_Interspeech,
-        author = {Hirotoshi, Takeuchi and Kunio, Kashio and Yasunori,Ohishi and Hiroshi Saruwatari},
+        author = {Hirotoshi, Takeuchi and Kunio, Kashio and Yasunori, Ohishi and Hiroshi, Saruwatari},
         title = {Harmonic Lowering for Accelerating Harmonic Convolution for Audio Signals},
         booktitle = {Interspeech},
         month = {},
