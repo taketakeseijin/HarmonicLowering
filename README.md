@@ -5,6 +5,16 @@ The official implementation of harmonic convolution by Harmonic Lowering propose
 <img src="https://github.com/taketakeseijin/HarmonicLowering/blob/master/figs/HarmonicLowering.png" width="480">
 
 Note that this implementation is not the official one of the [original paper](http://dap.csail.mit.edu/).
+## Build
+### Requirements
+some Nvidia GPU  
+PyTorch newer than v1.0 with CUDA
+### Install
+
+```shell
+cd src
+python setup.py install
+```
 
 ## Usage
 You can easily replace normal convolution with harmonic convolution.
