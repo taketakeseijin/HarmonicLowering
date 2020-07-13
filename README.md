@@ -31,7 +31,7 @@ conv_module = harmonic_conv.SingleHarmonicConv2d(in_channels, out_channels, kern
 ```
 ### Logarithmic Harmonic Convolution example
 Replace like below. 
-out_log_scale (A), in_log_scale (B), radix (C) mean logarithmic function is f(x) = A log_C B.
+out_log_scale (A), in_log_scale (B), radix (C) mean logarithmic function is f(x) = A log_C (Bx).
 Default radix is e (None).
 
 ```python
