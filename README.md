@@ -50,3 +50,7 @@ If you use the code, please cite:
         year = {2020}
     }
 ```
+
+## License  
+
+Check [this file](https://github.com/taketakeseijin/HarmonicLowering/blob/master/SOFTWARE_LICENSE_AGREEMENT.docx).
