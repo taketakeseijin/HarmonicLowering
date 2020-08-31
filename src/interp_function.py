@@ -68,7 +68,7 @@ class ZoomF(torch.autograd.Function):
             if n == 1:
                 # stride case
                 # [batch,channel,freq,time]
-                freq_size = grad_output.shape[3]
+                freq_size = grad_output.shape[2]
                 # get by stride
                 strided_grad_output = grad_output[:, :, ::k, :]
                 # 0-padding

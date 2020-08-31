@@ -5,6 +5,43 @@ The official implementation of harmonic convolution by Harmonic Lowering propose
 <img src="https://github.com/taketakeseijin/HarmonicLowering/blob/master/figs/HarmonicLowering.png" width="480">
 
 Note that this implementation is not the official one of the [original paper](http://dap.csail.mit.edu/).
+## Build
+### Requirements
+Python 3.*  
+PyTorch newer than v1.0 with CUDA
+### Install
+
+```shell
+cd src
+python setup.py install
+```
+
+## Usage
+You can easily replace normal convolution with harmonic convolution.
+### Harmonic Convolution example
+Replace like below. 
+Note that padding_mode is restricted to "zero" and padding[0] (freq axis padding) must be 0.
+The anchor parameter is default 1.  The default of other parameters (stride, padding, dilation, groups, bias, padding_mode) is the same with Conv2d.
+
+```python
+# import torch
+# conv_module = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode)
+import harmonic_conv
+conv_module = harmonic_conv.SingleHarmonicConv2d(in_channels, out_channels, kernel_size, anchor=1, stride, padding=(0,padding[1]), dilation, groups, bias, padding_mode="zero")
+```
+### Logarithmic Harmonic Convolution example
+Replace like below. 
+out_log_scale (A), in_log_scale (B), radix (C) mean logarithmic function is f(x) = A log_C (Bx).
+Default radix is e (None).
+
+```python
+# import torch
+# conv_module = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode)
+import harmonic_conv
+conv_module = harmonic_conv.SingleLogHarmonicConv2d(in_channels, out_channels, kernel_size, out_log_scale=1000, in_log_scale=0.001, radix=None anchor=1, stride, padding=(0,padding[1]), dilation, groups, bias, padding_mode="zero")
+```
+
+
 
 ## Benchmark
 
@@ -43,7 +80,7 @@ If you use the code, please cite:
 
 ```bibtex
     @InProceedings{Hirotoshi_2020_Interspeech,
-        author = {Hirotoshi, Takeuchi and Kunio, Kashio and Yasunori,Ohishi and Hiroshi Saruwatari},
+        author = {Hirotoshi, Takeuchi and Kunio, Kashio and Yasunori, Ohishi and Hiroshi, Saruwatari},
         title = {Harmonic Lowering for Accelerating Harmonic Convolution for Audio Signals},
         booktitle = {Interspeech},
         month = {},
